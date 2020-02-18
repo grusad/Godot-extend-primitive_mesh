@@ -326,6 +326,36 @@ public:
 	SphereMesh();
 };
 
+class ConeMesh : public PrimitiveMesh {
+	GDCLASS(ConeMesh, PrimitiveMesh);
+
+private:
+	float bottom_radius;
+	float height;
+	int radial_segments;
+	int rings;
+
+protected:
+	static void _bind_methods();
+	virtual void _create_mesh_array(Array &p_arr) const;
+
+public:
+
+	void set_bottom_radius(const float p_radius);
+	float get_bottom_radius() const;
+
+	void set_height(const float p_height);
+	float get_height() const;
+
+	void set_radial_segments(const int p_segments);
+	int get_radial_segments() const;
+
+	void set_rings(const int p_rings);
+	int get_rings() const;
+
+	ConeMesh();
+};
+
 /**
 	A single point for use in particle systems
 */

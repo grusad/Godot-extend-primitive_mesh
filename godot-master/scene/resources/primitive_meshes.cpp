@@ -1577,6 +1577,181 @@ SphereMesh::SphereMesh() {
 }
 
 /**
+  ConeMesh
+*/
+
+void ConeMesh::_create_mesh_array(Array &p_arr) const {
+	int i, j, prevrow, thisrow, point;
+	float x, y, z, u, v, radius;
+
+	PoolVector<Vector3> points;
+	PoolVector<Vector3> normals;
+	PoolVector<float> tangents;
+	PoolVector<Vector2> uvs;
+	PoolVector<int> indices;
+	point = 0;
+
+#define ADD_TANGENT(m_x, m_y, m_z, m_d) \
+	tangents.push_back(m_x);            \
+	tangents.push_back(m_y);            \
+	tangents.push_back(m_z);            \
+	tangents.push_back(m_d);
+
+	thisrow = 0;
+	prevrow = 0;
+	for (j = 0; j <= (rings + 1); j++) {
+		v = j;
+		v /= (rings + 1);
+
+		radius = ((bottom_radius) * v);
+
+		y = height * v;
+		y = (height * 0.5) - y;
+
+		for (i = 0; i <= radial_segments; i++) {
+			u = i;
+			u /= radial_segments;
+
+			x = sin(u * (Math_PI * 2.0));
+			z = cos(u * (Math_PI * 2.0));
+
+			Vector3 p = Vector3(x * radius, y, z * radius);
+			points.push_back(p);
+			normals.push_back(Vector3(x, 0.0, z));
+			ADD_TANGENT(z, 0.0, -x, 1.0)
+			uvs.push_back(Vector2(u, v * 0.5));
+			point++;
+
+			if (i > 0 && j > 0) {
+				indices.push_back(prevrow + i - 1);
+				indices.push_back(prevrow + i);
+				indices.push_back(thisrow + i - 1);
+
+				indices.push_back(prevrow + i);
+				indices.push_back(thisrow + i);
+				indices.push_back(thisrow + i - 1);
+			};
+		};
+
+		prevrow = thisrow;
+		thisrow = point;
+	};
+
+	// add top vertex
+	thisrow = point;
+	points.push_back(Vector3(0.0, height * 0.5, 0.0));
+	normals.push_back(Vector3(0.0, 1.0, 0.0));
+	ADD_TANGENT(1.0, 0.0, 0.0, 1.0)
+	uvs.push_back(Vector2(0.25, 0.75));
+	point++;
+
+	// add bottom
+	if (bottom_radius > 0.0) {
+		y = height * -0.5;
+
+		thisrow = point;
+		points.push_back(Vector3(0.0, y, 0.0));
+		normals.push_back(Vector3(0.0, -1.0, 0.0));
+		ADD_TANGENT(1.0, 0.0, 0.0, 1.0)
+		uvs.push_back(Vector2(0.75, 0.75));
+		point++;
+
+		for (i = 0; i <= radial_segments; i++) {
+			float r = i;
+			r /= radial_segments;
+
+			x = sin(r * (Math_PI * 2.0));
+			z = cos(r * (Math_PI * 2.0));
+
+			u = 0.5 + ((x + 1.0) * 0.25);
+			v = 1.0 - ((z + 1.0) * 0.25);
+
+			Vector3 p = Vector3(x * bottom_radius, y, z * bottom_radius);
+			points.push_back(p);
+			normals.push_back(Vector3(0.0, -1.0, 0.0));
+			ADD_TANGENT(1.0, 0.0, 0.0, 1.0)
+			uvs.push_back(Vector2(u, v));
+			point++;
+
+			if (i > 0) {
+				indices.push_back(thisrow);
+				indices.push_back(point - 2);
+				indices.push_back(point - 1);
+			};
+		};
+	};
+
+	p_arr[VS::ARRAY_VERTEX] = points;
+	p_arr[VS::ARRAY_NORMAL] = normals;
+	p_arr[VS::ARRAY_TANGENT] = tangents;
+	p_arr[VS::ARRAY_TEX_UV] = uvs;
+	p_arr[VS::ARRAY_INDEX] = indices;
+}
+
+void ConeMesh::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_bottom_radius", "radius"), &ConeMesh::set_bottom_radius);
+	ClassDB::bind_method(D_METHOD("get_bottom_radius"), &ConeMesh::get_bottom_radius);
+	ClassDB::bind_method(D_METHOD("set_height", "height"), &ConeMesh::set_height);
+	ClassDB::bind_method(D_METHOD("get_height"), &ConeMesh::get_height);
+
+	ClassDB::bind_method(D_METHOD("set_radial_segments", "segments"), &ConeMesh::set_radial_segments);
+	ClassDB::bind_method(D_METHOD("get_radial_segments"), &ConeMesh::get_radial_segments);
+	ClassDB::bind_method(D_METHOD("set_rings", "rings"), &ConeMesh::set_rings);
+	ClassDB::bind_method(D_METHOD("get_rings"), &ConeMesh::get_rings);
+
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "bottom_radius", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_bottom_radius", "get_bottom_radius");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "height", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_height", "get_height");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "radial_segments", PROPERTY_HINT_RANGE, "1,100,1,or_greater"), "set_radial_segments", "get_radial_segments");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "rings", PROPERTY_HINT_RANGE, "1,100,1,or_greater"), "set_rings", "get_rings");
+}
+
+
+void ConeMesh::set_bottom_radius(const float p_radius) {
+	bottom_radius = p_radius;
+	_request_update();
+}
+
+float ConeMesh::get_bottom_radius() const {
+	return bottom_radius;
+}
+
+void ConeMesh::set_height(const float p_height) {
+	height = p_height;
+	_request_update();
+}
+
+float ConeMesh::get_height() const {
+	return height;
+}
+
+void ConeMesh::set_radial_segments(const int p_segments) {
+	radial_segments = p_segments > 4 ? p_segments : 4;
+	_request_update();
+}
+
+int ConeMesh::get_radial_segments() const {
+	return radial_segments;
+}
+
+void ConeMesh::set_rings(const int p_rings) {
+	rings = p_rings > 0 ? p_rings : 0;
+	_request_update();
+}
+
+int ConeMesh::get_rings() const {
+	return rings;
+}
+
+ConeMesh::ConeMesh() {
+	// defaults
+	bottom_radius = 1.0;
+	height = 2.0;
+	radial_segments = 64;
+	rings = 4;
+}
+
+
+/**
   PointMesh
 */
 
