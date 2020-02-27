@@ -1583,7 +1583,7 @@ SphereMesh::SphereMesh() {
 
 void ConeMesh::_create_mesh_array(Array &p_arr) const {
 	int i, j, prevrow, thisrow, point;
-	float x, y, z, u, v, radius;
+	float x, y, z, u, v, radius, side_angle;
 
 	PoolVector<Vector3> points;
 	PoolVector<Vector3> normals;
@@ -1597,6 +1597,8 @@ void ConeMesh::_create_mesh_array(Array &p_arr) const {
 	tangents.push_back(m_y);            \
 	tangents.push_back(m_z);            \
 	tangents.push_back(m_d);
+
+  side_angle = tan(bottom_radius / height);
 
 	thisrow = 0;
 	prevrow = 0;
@@ -1618,7 +1620,7 @@ void ConeMesh::_create_mesh_array(Array &p_arr) const {
 
 			Vector3 p = Vector3(x * radius, y, z * radius);
 			points.push_back(p);
-			normals.push_back(Vector3(x, 0.0, z));
+			normals.push_back((Vector3(x, 0.0, z) * cos(side_angle) + Vector3(0.0, 1.0, 0.0) * sin(side_angle)));
 			ADD_TANGENT(z, 0.0, -x, 1.0)
 			uvs.push_back(Vector2(u, v * 0.5));
 			point++;
