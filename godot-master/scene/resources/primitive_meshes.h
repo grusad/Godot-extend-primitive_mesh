@@ -356,6 +356,52 @@ public:
 	ConeMesh();
 };
 
+
+class IcosphereMesh : public PrimitiveMesh {
+	GDCLASS(IcosphereMesh, PrimitiveMesh);
+
+private:
+	float radius;
+	float height;
+	int subdivisions;
+
+	struct TriangleIndices
+	{
+	public:
+		int v1;
+		int v2;
+		int v3;
+
+		TriangleIndices(int v1, int v2, int v3)
+		{
+			this->v1 = v1;
+			this->v2 = v2;
+			this->v3 = v3;
+		}
+	};
+
+
+protected:
+	static void _bind_methods();
+	virtual void _create_mesh_array(Array &p_arr) const;
+
+public:
+
+	void set_radius(const float p_radius);
+	float get_radius() const;
+
+	void set_height(const float p_height);
+	float get_height() const;
+
+	void set_subdivisions(const int p_subdivisions);
+	int get_subdivisions() const;
+
+	void add_vertex(Vector3 vertex, PoolVector<Vector3>& points, int& index) const;
+
+	IcosphereMesh();
+};
+
+
 /**
 	A single point for use in particle systems
 */

@@ -30,6 +30,7 @@
 
 #include "primitive_meshes.h"
 #include "servers/visual_server.h"
+#include <cmath>
 
 /**
   PrimitiveMesh
@@ -1749,6 +1750,149 @@ ConeMesh::ConeMesh() {
 	radial_segments = 64;
 	rings = 4;
 }
+
+
+
+
+/**
+  IcosphereMesh
+*/
+
+
+void IcosphereMesh::_create_mesh_array(Array &p_arr) const {
+	int i, j, prevrow, thisrow, point;
+	float x, y, z;
+
+	// set our bounding box
+
+	PoolVector<Vector3> points;
+	PoolVector<Vector3> normals;
+	PoolVector<float> tangents;
+	PoolVector<Vector2> uvs;
+	PoolVector<int> indices;
+
+	point = 0;
+
+#define ADD_TANGENT(m_x, m_y, m_z, m_d) \
+	tangents.push_back(m_x);            \
+	tangents.push_back(m_y);            \
+	tangents.push_back(m_z);            \
+	tangents.push_back(m_d);
+
+	float t = (1.0 + sqrt(5)) / 2.0;
+
+	int index;
+	PoolVector<TriangleIndices> faces;
+
+	add_vertex(Vector3(-1, t, 0), points, index);
+	add_vertex(Vector3(1, t, 0), points, index);
+	add_vertex(Vector3(-1, -t, 0), points, index);
+	add_vertex(Vector3(1, -t, 0), points, index);
+
+	add_vertex(Vector3(0, -1, t), points, index);
+	add_vertex(Vector3(0, 1, t), points, index);
+	add_vertex(Vector3(0, -1, -t), points, index);
+	add_vertex(Vector3(0, 1, -t), points, index);
+
+	add_vertex(Vector3(t, 0, -1), points, index);
+	add_vertex(Vector3(t, 0, 1), points, index);
+	add_vertex(Vector3(-t, 0, -1), points, index);
+	add_vertex(Vector3(-t, 0, 1), points, index);
+
+	faces.push_back(TriangleIndices(0, 11, 5));
+	faces.push_back(TriangleIndices(0, 5, 1));
+	faces.push_back(TriangleIndices(0, 1, 7));
+	faces.push_back(TriangleIndices(0, 7, 10));
+	faces.push_back(TriangleIndices(0, 10, 11));
+
+	faces.push_back(TriangleIndices(1, 5, 9));
+	faces.push_back(TriangleIndices(5, 11, 4));
+	faces.push_back(TriangleIndices(11, 10, 2));
+	faces.push_back(TriangleIndices(10, 7, 6));
+	faces.push_back(TriangleIndices(7, 1, 8));
+
+	faces.push_back( TriangleIndices(3, 9, 4));
+	faces.push_back(TriangleIndices(3, 4, 2));
+	faces.push_back(TriangleIndices(3, 2, 6));
+	faces.push_back(TriangleIndices(3, 6, 8));
+	faces.push_back(TriangleIndices(3, 8, 9));
+
+	faces.push_back(TriangleIndices(4, 9, 5));
+	faces.push_back(TriangleIndices(2, 4, 11));
+	faces.push_back(TriangleIndices(6, 2, 10));
+	faces.push_back(TriangleIndices(8, 6, 7));
+	faces.push_back(TriangleIndices(9, 8, 1));
+
+
+	for(int i = 0; i < subdivisions; i++)
+	{
+		PoolVector<TriangleIndices> new_faces;
+	}
+
+
+	p_arr[VS::ARRAY_VERTEX] = points;
+	p_arr[VS::ARRAY_NORMAL] = normals;
+	p_arr[VS::ARRAY_TANGENT] = tangents;
+	p_arr[VS::ARRAY_TEX_UV] = uvs;
+	p_arr[VS::ARRAY_INDEX] = indices;
+}
+
+void IcosphereMesh::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_radius", "radius"), &IcosphereMesh::set_radius);
+	ClassDB::bind_method(D_METHOD("get_radius"), &IcosphereMesh::get_radius);
+	ClassDB::bind_method(D_METHOD("set_height", "height"), &IcosphereMesh::set_height);
+	ClassDB::bind_method(D_METHOD("get_height"), &IcosphereMesh::get_height);
+
+	ClassDB::bind_method(D_METHOD("set_subdivisions", "subdivisions"), &IcosphereMesh::set_subdivisions);
+	ClassDB::bind_method(D_METHOD("get_subdivisions"), &IcosphereMesh::get_subdivisions);
+
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "radius", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_radius", "get_radius");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "height", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_height", "get_height");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "subdivisions", PROPERTY_HINT_RANGE, "1,100,1,or_greater"), "set_subdivisions", "get_subdivisions");
+}
+
+
+void IcosphereMesh::set_radius(const float p_radius) {
+	radius = p_radius;
+	_request_update();
+}
+
+float IcosphereMesh::get_radius() const {
+	return radius;
+}
+
+void IcosphereMesh::set_height(const float p_height) {
+	height = p_height;
+	_request_update();
+}
+
+float IcosphereMesh::get_height() const {
+	return height;
+}
+
+void IcosphereMesh::set_subdivisions(const int p_subdivisions) {
+	subdivisions = p_subdivisions > 2 ? p_subdivisions : 2;
+	_request_update();
+}
+
+int IcosphereMesh::get_subdivisions() const {
+	return subdivisions;
+}
+
+void IcosphereMesh::add_vertex(Vector3 vertex, PoolVector<Vector3>& points, int& index) const{
+	double length = sqrt(vertex.x * vertex.x + vertex.y * vertex.y + vertex.z * vertex.z);
+	points.push_back(Vector3(vertex.x / length, vertex.y / length, vertex.z / length));
+	index++;
+}
+
+
+IcosphereMesh::IcosphereMesh() {
+	// defaults
+	radius = 1.0;
+	height = 2.0;
+	subdivisions = 2;
+}
+
 
 
 /**
