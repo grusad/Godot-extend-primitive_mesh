@@ -1754,6 +1754,151 @@ ConeMesh::ConeMesh() {
 
 
 /**
+  TorusMesh
+*/
+
+void TorusMesh::_create_mesh_array(Array &p_arr) const {
+	int i, j, prevrow, thisrow, point;
+	float x, y, z, u, v;
+
+	PoolVector<Vector3> points;
+	PoolVector<Vector3> normals;
+	PoolVector<float> tangents;
+	PoolVector<Vector2> uvs;
+	PoolVector<int> indices;
+	point = 0;
+
+#define ADD_TANGENT(m_x, m_y, m_z, m_d) \
+	tangents.push_back(m_x);            \
+	tangents.push_back(m_y);            \
+	tangents.push_back(m_z);            \
+	tangents.push_back(m_d);
+
+  
+
+	thisrow = 0;
+	prevrow = 0;
+	for (j = 0; j <= rings; j++) {
+		  v = (float)j / rings * Math_PI * 2.0f;
+		
+		for (i = 0; i <= radial_segments; i++) {
+			u = (float)i / radial_segments * Math_PI * 2.0f;
+
+			x = ( radius + tube_radius * cos(v)) * cos(u);
+      y = ( radius + tube_radius * cos(v)) * sin(u);
+			z = tube_radius * sin(v);
+
+			Vector3 p = Vector3(x, y, z);
+			points.push_back(p);
+			normals.push_back(p.normalized());
+			ADD_TANGENT(z, 0.0, -x, 1.0)
+			uvs.push_back(Vector2((float)i / radial_segments, (float)j / rings));
+      //uvs.push_back(Vector2(u,v));
+			point++;
+
+			if (i > 0 && j > 0) {
+        
+				indices.push_back(prevrow + i - 1);
+				indices.push_back(thisrow + i - 1);
+				indices.push_back(prevrow + i);
+
+				indices.push_back(prevrow + i);
+				indices.push_back(thisrow + i - 1);
+				indices.push_back(thisrow + i);
+
+			};
+		};
+
+		prevrow = thisrow;
+		thisrow = point;
+	};
+
+
+	p_arr[VS::ARRAY_VERTEX] = points;
+	p_arr[VS::ARRAY_NORMAL] = normals;
+	p_arr[VS::ARRAY_TANGENT] = tangents;
+	p_arr[VS::ARRAY_TEX_UV] = uvs;
+	p_arr[VS::ARRAY_INDEX] = indices;
+}
+
+void TorusMesh::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_radius", "radius"), &TorusMesh::set_radius);
+	ClassDB::bind_method(D_METHOD("get_radius"), &TorusMesh::get_radius);
+	ClassDB::bind_method(D_METHOD("set_tube_radius", "tube_radius"), &TorusMesh::set_tube_radius);
+	ClassDB::bind_method(D_METHOD("get_tube_radius"), &TorusMesh::get_tube_radius);
+
+	ClassDB::bind_method(D_METHOD("set_radial_segments", "segments"), &TorusMesh::set_radial_segments);
+	ClassDB::bind_method(D_METHOD("get_radial_segments"), &TorusMesh::get_radial_segments);
+	ClassDB::bind_method(D_METHOD("set_rings", "rings"), &TorusMesh::set_rings);
+	ClassDB::bind_method(D_METHOD("get_rings"), &TorusMesh::get_rings);
+  //ClassDB::bind_method(D_METHOD("set_arc", "arc"), &TorusMesh::set_arc);
+	//ClassDB::bind_method(D_METHOD("get_arc"), &TorusMesh::get_arc);
+
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "radius", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_radius", "get_radius");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "tube_radius", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_tube_radius", "get_tube_radius");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "radial_segments", PROPERTY_HINT_RANGE, "1,100,1,or_greater"), "set_radial_segments", "get_radial_segments");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "rings", PROPERTY_HINT_RANGE, "1,100,1,or_greater"), "set_rings", "get_rings");
+  //ADD_PROPERTY(PropertyInfo(Variant::INT, "arc", PROPERTY_HINT_RANGE,"1,7,1"), "set_arc", "get_arc");
+}
+
+
+void TorusMesh::set_radius(const float p_radius) {
+	radius = p_radius;
+	_request_update();
+}
+
+float TorusMesh::get_radius() const {
+	return radius;
+}
+
+void TorusMesh::set_tube_radius(const float p_tube_radius) {
+	tube_radius = p_tube_radius;
+	_request_update();
+}
+
+float TorusMesh::get_tube_radius() const {
+	return tube_radius;
+}
+
+void TorusMesh::set_radial_segments(const int p_segments) {
+	radial_segments = p_segments > 4 ? p_segments : 4;
+	_request_update();
+}
+
+int TorusMesh::get_radial_segments() const {
+	return radial_segments;
+}
+
+void TorusMesh::set_rings(const int p_rings) {
+	rings = p_rings > 0 ? p_rings : 0;
+	_request_update();
+}
+
+int TorusMesh::get_rings() const {
+	return rings;
+}
+
+/* void TorusMesh::set_arc(const int p_arc) {
+  arc = p_arc;
+  _request_update();
+}
+
+int TorusMesh::get_arc() const {
+  return arc;
+} */
+
+TorusMesh::TorusMesh() {
+	// defaults
+	radius = 1.0;
+	tube_radius = 0.2;
+	radial_segments = 50;
+	rings = 50;
+  arc = Math_PI * 2;
+}
+
+
+
+/**
   PointMesh
 */
 

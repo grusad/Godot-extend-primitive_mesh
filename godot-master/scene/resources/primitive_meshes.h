@@ -356,6 +356,41 @@ public:
 	ConeMesh();
 };
 
+
+class TorusMesh : public PrimitiveMesh {
+	GDCLASS(TorusMesh, PrimitiveMesh);
+
+private:
+	float radius;
+	float tube_radius;
+	int radial_segments;
+	int rings;
+  int arc;
+
+protected:
+	static void _bind_methods();
+	virtual void _create_mesh_array(Array &p_arr) const;
+
+public:
+
+	void set_radius(const float p_radius);
+	float get_radius() const;
+
+	void set_tube_radius(const float p_tube_radius);
+	float get_tube_radius() const;
+
+	void set_radial_segments(const int p_segments);
+	int get_radial_segments() const;
+
+	void set_rings(const int p_rings);
+	int get_rings() const;
+
+  //void set_arc(const int p_arc);
+  //int get_arc() const;
+
+	TorusMesh();
+};
+
 /**
 	A single point for use in particle systems
 */
