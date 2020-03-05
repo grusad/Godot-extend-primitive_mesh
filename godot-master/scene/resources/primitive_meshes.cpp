@@ -1759,7 +1759,7 @@ ConeMesh::ConeMesh() {
 
 void TorusMesh::_create_mesh_array(Array &p_arr) const {
 	int i, j, prevrow, thisrow, point;
-	float x, y, z, u, v;
+	float x, y, z, u, v, v_angle, u_angle;
 
 	PoolVector<Vector3> points;
 	PoolVector<Vector3> normals;
@@ -1779,25 +1779,27 @@ void TorusMesh::_create_mesh_array(Array &p_arr) const {
 	thisrow = 0;
 	prevrow = 0;
 	for (j = 0; j <= rings; j++) {
-		  v = (float)j / rings * Math_PI * 2.0f;
+    v = j;
+    v /= rings;
+    v_angle = v * Math_PI * 2.0f;
 		
 		for (i = 0; i <= radial_segments; i++) {
-			u = (float)i / radial_segments * Math_PI * 2.0f;
+      u = i;
+      u /= radial_segments;
+      u_angle = u * Math_PI * 2.0f;
 
-			x = ( radius + tube_radius * cos(v)) * cos(u);
-      y = ( radius + tube_radius * cos(v)) * sin(u);
-			z = tube_radius * sin(v);
+			x = ( radius + tube_radius * cos(v_angle)) * cos(u_angle);
+      y = ( radius + tube_radius * cos(v_angle)) * sin(u_angle);
+			z = tube_radius * sin(v_angle);
 
 			Vector3 p = Vector3(x, y, z);
 			points.push_back(p);
 			normals.push_back(p.normalized());
 			ADD_TANGENT(z, 0.0, -x, 1.0)
-			uvs.push_back(Vector2((float)i / radial_segments, (float)j / rings));
-      //uvs.push_back(Vector2(u,v));
+      uvs.push_back(Vector2(u,v));
 			point++;
 
-			if (i > 0 && j > 0) {
-        
+			if (i > 0 && j > 0) { 
 				indices.push_back(prevrow + i - 1);
 				indices.push_back(thisrow + i - 1);
 				indices.push_back(prevrow + i);
@@ -1805,7 +1807,6 @@ void TorusMesh::_create_mesh_array(Array &p_arr) const {
 				indices.push_back(prevrow + i);
 				indices.push_back(thisrow + i - 1);
 				indices.push_back(thisrow + i);
-
 			};
 		};
 
