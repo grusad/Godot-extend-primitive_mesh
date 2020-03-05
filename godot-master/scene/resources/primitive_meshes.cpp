@@ -1794,7 +1794,7 @@ void TorusMesh::_create_mesh_array(Array &p_arr) const {
 
 			Vector3 p = Vector3(x, y, z);
 			points.push_back(p);
-			normals.push_back(p.normalized());
+			normals.push_back(Vector3(x - (radius * cos(u_angle)), y - (radius * sin(u_angle)), z ).normalized());
 			ADD_TANGENT(z, 0.0, -x, 1.0)
       uvs.push_back(Vector2(u,v));
 			point++;
