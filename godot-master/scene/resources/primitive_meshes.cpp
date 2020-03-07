@@ -1786,7 +1786,7 @@ void TorusMesh::_create_mesh_array(Array &p_arr) const {
 		for (i = 0; i <= radial_segments; i++) {
       u = i;
       u /= radial_segments;
-      u_angle = u * Math_PI * 2.0f;
+      u_angle = u * Math::deg2rad((float)arc);
 
 			x = ( radius + tube_radius * cos(v_angle)) * cos(u_angle);
       y = ( radius + tube_radius * cos(v_angle)) * sin(u_angle);
@@ -1796,7 +1796,7 @@ void TorusMesh::_create_mesh_array(Array &p_arr) const {
 			points.push_back(p);
 			normals.push_back(Vector3(x - (radius * cos(u_angle)), y - (radius * sin(u_angle)), z ).normalized());
 			ADD_TANGENT(z, 0.0, -x, 1.0)
-      uvs.push_back(Vector2(u,v));
+      uvs.push_back(Vector2(u,v * -1));
 			point++;
 
 			if (i > 0 && j > 0) { 
@@ -1832,14 +1832,14 @@ void TorusMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_radial_segments"), &TorusMesh::get_radial_segments);
 	ClassDB::bind_method(D_METHOD("set_rings", "rings"), &TorusMesh::set_rings);
 	ClassDB::bind_method(D_METHOD("get_rings"), &TorusMesh::get_rings);
-  //ClassDB::bind_method(D_METHOD("set_arc", "arc"), &TorusMesh::set_arc);
-	//ClassDB::bind_method(D_METHOD("get_arc"), &TorusMesh::get_arc);
+  ClassDB::bind_method(D_METHOD("set_arc", "arc"), &TorusMesh::set_arc);
+	ClassDB::bind_method(D_METHOD("get_arc"), &TorusMesh::get_arc);
 
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "radius", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_radius", "get_radius");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "tube_radius", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_tube_radius", "get_tube_radius");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "radius", PROPERTY_HINT_RANGE, "0.001,10.0,0.1,or_greater"), "set_radius", "get_radius");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "tube_radius", PROPERTY_HINT_RANGE, "0.001,10.0,0.1,or_greater"), "set_tube_radius", "get_tube_radius");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "radial_segments", PROPERTY_HINT_RANGE, "1,100,1,or_greater"), "set_radial_segments", "get_radial_segments");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "rings", PROPERTY_HINT_RANGE, "1,100,1,or_greater"), "set_rings", "get_rings");
-  //ADD_PROPERTY(PropertyInfo(Variant::INT, "arc", PROPERTY_HINT_RANGE,"1,7,1"), "set_arc", "get_arc");
+  ADD_PROPERTY(PropertyInfo(Variant::INT, "arc", PROPERTY_HINT_RANGE,"1,360,1"), "set_arc", "get_arc");
 }
 
 
@@ -1879,22 +1879,22 @@ int TorusMesh::get_rings() const {
 	return rings;
 }
 
-/* void TorusMesh::set_arc(const int p_arc) {
+void TorusMesh::set_arc(const int p_arc) {
   arc = p_arc;
   _request_update();
 }
 
 int TorusMesh::get_arc() const {
   return arc;
-} */
+}
 
 TorusMesh::TorusMesh() {
 	// defaults
 	radius = 1.0;
 	tube_radius = 0.2;
-	radial_segments = 50;
-	rings = 50;
-  arc = Math_PI * 2;
+	radial_segments = 25;
+	rings = 15;
+  arc = 360;
 }
 
 

@@ -385,8 +385,8 @@ public:
 	void set_rings(const int p_rings);
 	int get_rings() const;
 
-  //void set_arc(const int p_arc);
-  //int get_arc() const;
+  void set_arc(const int p_arc);
+  int get_arc() const;
 
 	TorusMesh();
 };
