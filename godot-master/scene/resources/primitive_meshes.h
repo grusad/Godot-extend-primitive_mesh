@@ -318,6 +318,7 @@ public:
 	int get_radial_segments() const;
 
 	void set_rings(const int p_rings);
+
 	int get_rings() const;
 
 	void set_is_hemisphere(const bool p_is_hemisphere);
@@ -361,16 +362,11 @@ class IcosphereMesh : public PrimitiveMesh {
 	GDCLASS(IcosphereMesh, PrimitiveMesh);
 
 private:
-	int index = 0;
-	PoolVector<Vector3> points;
-	PoolVector<Vector3> normals;
-	PoolVector<float> tangents;
-	PoolVector<Vector2> uvs;
-	PoolVector<int> indices;
 	float radius;
 	float height;
 	int subdivisions;
-	std::map<long, int> middle_point_index_cache;
+	int index;
+
 
 	struct TriangleIndices
 	{
@@ -402,9 +398,9 @@ public:
 
 	void set_subdivisions(const int p_subdivisions);
 	int get_subdivisions() const;
-	int add_vertex(Vector3 vertex);
+	int add_vertex(Vector3 vertex, PoolVector<Vector3> &points, PoolVector<Vector3> &normals, PoolVector<Vector2> &uvs, PoolVector<float> &tangents);
 
-	int get_middle_point(int p1, int p2);
+	int get_middle_point(int p1, int p2, PoolVector<Vector3> &points, PoolVector<Vector3> &normals, PoolVector<Vector2> &uvs, PoolVector<float> &tangents, std::map<long, int> &middle_point_index_cache);
 	void create_mesh_array(Array &p_arr);
 	IcosphereMesh();
 };

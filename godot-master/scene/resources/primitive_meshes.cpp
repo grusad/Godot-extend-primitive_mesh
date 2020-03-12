@@ -575,7 +575,7 @@ void CubeMesh::_create_mesh_array(Array &p_arr) const {
 			u /= (3.0 * (subdivide_d + 1.0));
 			v /= (2.0 * (subdivide_h + 1.0));
 
-			// right
+			// right	points.clear();
 			points.push_back(Vector3(-start_pos.x, -y, -z));
 			normals.push_back(Vector3(1.0, 0.0, 0.0));
 			ADD_TANGENT(0.0, 0.0, -1.0, 1.0);
@@ -1759,26 +1759,35 @@ ConeMesh::ConeMesh() {
 */
 
 #include <map>
-
+#include <stdio.h>
 
 void IcosphereMesh::create_mesh_array(Array &p_arr) {
 
 	double t = (1.0 + sqrt(5.0)) / 2.0;
 
-	add_vertex(Vector3(-1,  t,  0));
-	add_vertex(Vector3( 1,  t,  0));
-	add_vertex(Vector3(-1, -t,  0));
-	add_vertex(Vector3( 1, -t,  0));
+	index = 0;
+	PoolVector<Vector3> points;
+	PoolVector<Vector3> normals;
+	PoolVector<float> tangents;
+	PoolVector<Vector2> uvs;
+	PoolVector<int> indices;
 
-	add_vertex(Vector3( 0, -1,  t));
-	add_vertex(Vector3( 0,  1,  t));
-	add_vertex(Vector3( 0, -1, -t));
-	add_vertex(Vector3( 0,  1, -t));
+	std::map<long, int> middle_point_index_cache;
 
-	add_vertex(Vector3( t,  0, -1));
- 	add_vertex(Vector3( t,  0,  1));
- 	add_vertex(Vector3(-t,  0, -1));
-  	add_vertex(Vector3(-t,  0,  1));
+	add_vertex(Vector3(-1,  t,  0), points, normals, uvs, tangents);
+	add_vertex(Vector3( 1,  t,  0), points, normals, uvs, tangents);
+	add_vertex(Vector3(-1, -t,  0), points, normals, uvs, tangents);
+	add_vertex(Vector3( 1, -t,  0), points, normals, uvs, tangents);
+
+	add_vertex(Vector3( 0, -1,  t), points, normals, uvs, tangents);
+	add_vertex(Vector3( 0,  1,  t), points, normals, uvs, tangents);
+	add_vertex(Vector3( 0, -1, -t), points, normals, uvs, tangents);
+	add_vertex(Vector3( 0,  1, -t), points, normals, uvs, tangents);
+
+	add_vertex(Vector3( t,  0, -1), points, normals, uvs, tangents);
+ 	add_vertex(Vector3( t,  0,  1), points, normals, uvs, tangents);
+ 	add_vertex(Vector3(-t,  0, -1), points, normals, uvs, tangents);
+  	add_vertex(Vector3(-t,  0,  1), points, normals, uvs, tangents);
 
 	PoolVector<TriangleIndices> faces;
 
@@ -1794,13 +1803,11 @@ void IcosphereMesh::create_mesh_array(Array &p_arr) {
 	faces.push_back(TriangleIndices(10, 7, 6));
 	faces.push_back(TriangleIndices(7, 1, 8));
 
-
 	faces.push_back(TriangleIndices(3, 9, 4));
 	faces.push_back(TriangleIndices(3, 4, 2));
 	faces.push_back(TriangleIndices(3, 2, 6));
 	faces.push_back(TriangleIndices(3, 6, 8));
 	faces.push_back(TriangleIndices(3, 8, 9));
-
 
 	faces.push_back(TriangleIndices(4, 9, 5));
 	faces.push_back(TriangleIndices(2, 4, 11));
@@ -1809,15 +1816,15 @@ void IcosphereMesh::create_mesh_array(Array &p_arr) {
 	faces.push_back(TriangleIndices(9, 8, 1));
 
 
-	for(int i = 0; i < 1; i++){
+	for(int i = 0; i < subdivisions; i++){
 
 		PoolVector<TriangleIndices> new_faces;
 
 		for(int j = 0; j < faces.size(); j++){
 			TriangleIndices tri = faces[i];
-			int a = get_middle_point(tri.v1, tri.v2);
-            int b = get_middle_point(tri.v2, tri.v3);
-            int c = get_middle_point(tri.v3, tri.v1);
+			int a = get_middle_point(tri.v1, tri.v2, points, normals, uvs, tangents, middle_point_index_cache);
+            int b = get_middle_point(tri.v2, tri.v3, points, normals, uvs, tangents, middle_point_index_cache);
+            int c = get_middle_point(tri.v3, tri.v1, points, normals, uvs, tangents, middle_point_index_cache);
 
 			new_faces.push_back(TriangleIndices(tri.v1, a, c));
             new_faces.push_back(TriangleIndices(tri.v2, b, a));
@@ -1836,6 +1843,7 @@ void IcosphereMesh::create_mesh_array(Array &p_arr) {
 	}
 
 
+	print_line("Points: " + itos(points.size()) + ", indices:" + itos(indices.size()) + "  faces:" + itos(faces.size()));
 
 
 	p_arr[VS::ARRAY_VERTEX] = points;
@@ -1850,7 +1858,6 @@ void IcosphereMesh::_create_mesh_array(Array &p_arr) const {
 	const_cast<IcosphereMesh*>(this)->create_mesh_array(p_arr);
 
 }
-
 void IcosphereMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_radius", "radius"), &IcosphereMesh::set_radius);
 	ClassDB::bind_method(D_METHOD("get_radius"), &IcosphereMesh::get_radius);
@@ -1862,9 +1869,8 @@ void IcosphereMesh::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "radius", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_radius", "get_radius");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "height", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_height", "get_height");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "subdivisions", PROPERTY_HINT_RANGE, "1,100,1,or_greater"), "set_subdivisions", "get_subdivisions");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "subdivisions", PROPERTY_HINT_RANGE, "0,100,1,or_greater"), "set_subdivisions", "get_subdivisions");
 }
-
 
 void IcosphereMesh::set_radius(const float p_radius) {
 	radius = p_radius;
@@ -1885,7 +1891,8 @@ float IcosphereMesh::get_height() const {
 }
 
 void IcosphereMesh::set_subdivisions(const int p_subdivisions) {
-	subdivisions = p_subdivisions > 2 ? p_subdivisions : 2;
+	//subdivisions = p_subdivisions > 2 ? p_subdivisions : 2;
+	subdivisions = p_subdivisions;
 	_request_update();
 }
 
@@ -1894,8 +1901,7 @@ int IcosphereMesh::get_subdivisions() const {
 }
 
 
-
-int IcosphereMesh::get_middle_point(int p1, int p2) {
+int IcosphereMesh::get_middle_point(int p1, int p2, PoolVector<Vector3> &points, PoolVector<Vector3> &normals, PoolVector<Vector2> &uvs, PoolVector<float> &tangents, std::map<long, int> &middle_point_index_cache) {
 	long smaller_index = p1;
 	long greater_index = p2;
 	if(p2 < p1){
@@ -1905,12 +1911,10 @@ int IcosphereMesh::get_middle_point(int p1, int p2) {
 
 	long key = (smaller_index << 32) + greater_index;
 
-	/*
 	auto iterator = middle_point_index_cache.find(key);
 	if(iterator != middle_point_index_cache.end()){
 		return iterator->second;
 	}
-	*/
 
 	Vector3 vector1 = points[p1];
 	Vector3 vector2 = points[p2];
@@ -1920,7 +1924,7 @@ int IcosphereMesh::get_middle_point(int p1, int p2) {
 		(vector1.z + vector2.z) / 2
 	);
 
-	int i = add_vertex(middle);
+	int i = add_vertex(middle, points, normals, uvs, tangents);
 
 	middle_point_index_cache[key] = i;
 	return i;
@@ -1928,7 +1932,7 @@ int IcosphereMesh::get_middle_point(int p1, int p2) {
 
 }
 
-int IcosphereMesh::add_vertex(Vector3 vertex){
+int IcosphereMesh::add_vertex(Vector3 vertex, PoolVector<Vector3> &points, PoolVector<Vector3> &normals, PoolVector<Vector2> &uvs, PoolVector<float> &tangents){
 	#define ADD_TANGENT(m_x, m_y, m_z, m_d) \
 		tangents.push_back(m_x);            \
 		tangents.push_back(m_y);            \
@@ -1937,7 +1941,7 @@ int IcosphereMesh::add_vertex(Vector3 vertex){
 
 	points.push_back(vertex.normalized());
 	normals.push_back(vertex.normalized());
-	ADD_TANGENT(1.0, 0.0, 0.0, 1.0)
+	ADD_TANGENT(vertex.z, 0.0, -vertex.x, 1.0)
 	uvs.push_back(Vector2(vertex.x, vertex.z));
 	return index++;
 }
