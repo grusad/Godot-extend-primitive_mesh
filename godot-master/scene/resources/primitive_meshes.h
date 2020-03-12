@@ -356,14 +356,21 @@ public:
 	ConeMesh();
 };
 
-
+#include <map>
 class IcosphereMesh : public PrimitiveMesh {
 	GDCLASS(IcosphereMesh, PrimitiveMesh);
 
 private:
+	int index = 0;
+	PoolVector<Vector3> points;
+	PoolVector<Vector3> normals;
+	PoolVector<float> tangents;
+	PoolVector<Vector2> uvs;
+	PoolVector<int> indices;
 	float radius;
 	float height;
 	int subdivisions;
+	std::map<long, int> middle_point_index_cache;
 
 	struct TriangleIndices
 	{
@@ -371,7 +378,7 @@ private:
 		int v1;
 		int v2;
 		int v3;
-
+		TriangleIndices() {};
 		TriangleIndices(int v1, int v2, int v3)
 		{
 			this->v1 = v1;
@@ -395,9 +402,10 @@ public:
 
 	void set_subdivisions(const int p_subdivisions);
 	int get_subdivisions() const;
+	int add_vertex(Vector3 vertex);
 
-	void add_vertex(Vector3 vertex, PoolVector<Vector3>& points, int& index) const;
-
+	int get_middle_point(int p1, int p2);
+	void create_mesh_array(Array &p_arr);
 	IcosphereMesh();
 };
 

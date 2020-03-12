@@ -1583,7 +1583,7 @@ SphereMesh::SphereMesh() {
 
 void ConeMesh::_create_mesh_array(Array &p_arr) const {
 	int i, j, prevrow, thisrow, point;
-	float x, y, z, u, v, radius, side_angle;
+	float x, y, z, u, v, radius;
 
 	PoolVector<Vector3> points;
 	PoolVector<Vector3> normals;
@@ -1597,8 +1597,6 @@ void ConeMesh::_create_mesh_array(Array &p_arr) const {
 	tangents.push_back(m_y);            \
 	tangents.push_back(m_z);            \
 	tangents.push_back(m_d);
-
-  side_angle = tan(bottom_radius / height);
 
 	thisrow = 0;
 	prevrow = 0;
@@ -1620,7 +1618,7 @@ void ConeMesh::_create_mesh_array(Array &p_arr) const {
 
 			Vector3 p = Vector3(x * radius, y, z * radius);
 			points.push_back(p);
-			normals.push_back((Vector3(x, 0.0, z) * cos(side_angle) + Vector3(0.0, 1.0, 0.0) * sin(side_angle)));
+			normals.push_back(Vector3(x, 0.0, z));
 			ADD_TANGENT(z, 0.0, -x, 1.0)
 			uvs.push_back(Vector2(u, v * 0.5));
 			point++;
@@ -1760,46 +1758,29 @@ ConeMesh::ConeMesh() {
   IcosphereMesh
 */
 
+#include <map>
 
-void IcosphereMesh::_create_mesh_array(Array &p_arr) const {
-	int i, j, prevrow, thisrow, point;
-	float x, y, z;
 
-	// set our bounding box
+void IcosphereMesh::create_mesh_array(Array &p_arr) {
 
-	PoolVector<Vector3> points;
-	PoolVector<Vector3> normals;
-	PoolVector<float> tangents;
-	PoolVector<Vector2> uvs;
-	PoolVector<int> indices;
+	double t = (1.0 + sqrt(5.0)) / 2.0;
 
-	point = 0;
+	add_vertex(Vector3(-1,  t,  0));
+	add_vertex(Vector3( 1,  t,  0));
+	add_vertex(Vector3(-1, -t,  0));
+	add_vertex(Vector3( 1, -t,  0));
 
-#define ADD_TANGENT(m_x, m_y, m_z, m_d) \
-	tangents.push_back(m_x);            \
-	tangents.push_back(m_y);            \
-	tangents.push_back(m_z);            \
-	tangents.push_back(m_d);
+	add_vertex(Vector3( 0, -1,  t));
+	add_vertex(Vector3( 0,  1,  t));
+	add_vertex(Vector3( 0, -1, -t));
+	add_vertex(Vector3( 0,  1, -t));
 
-	float t = (1.0 + sqrt(5)) / 2.0;
+	add_vertex(Vector3( t,  0, -1));
+ 	add_vertex(Vector3( t,  0,  1));
+ 	add_vertex(Vector3(-t,  0, -1));
+  	add_vertex(Vector3(-t,  0,  1));
 
-	int index;
 	PoolVector<TriangleIndices> faces;
-
-	add_vertex(Vector3(-1, t, 0), points, index);
-	add_vertex(Vector3(1, t, 0), points, index);
-	add_vertex(Vector3(-1, -t, 0), points, index);
-	add_vertex(Vector3(1, -t, 0), points, index);
-
-	add_vertex(Vector3(0, -1, t), points, index);
-	add_vertex(Vector3(0, 1, t), points, index);
-	add_vertex(Vector3(0, -1, -t), points, index);
-	add_vertex(Vector3(0, 1, -t), points, index);
-
-	add_vertex(Vector3(t, 0, -1), points, index);
-	add_vertex(Vector3(t, 0, 1), points, index);
-	add_vertex(Vector3(-t, 0, -1), points, index);
-	add_vertex(Vector3(-t, 0, 1), points, index);
 
 	faces.push_back(TriangleIndices(0, 11, 5));
 	faces.push_back(TriangleIndices(0, 5, 1));
@@ -1813,11 +1794,13 @@ void IcosphereMesh::_create_mesh_array(Array &p_arr) const {
 	faces.push_back(TriangleIndices(10, 7, 6));
 	faces.push_back(TriangleIndices(7, 1, 8));
 
-	faces.push_back( TriangleIndices(3, 9, 4));
+
+	faces.push_back(TriangleIndices(3, 9, 4));
 	faces.push_back(TriangleIndices(3, 4, 2));
 	faces.push_back(TriangleIndices(3, 2, 6));
 	faces.push_back(TriangleIndices(3, 6, 8));
 	faces.push_back(TriangleIndices(3, 8, 9));
+
 
 	faces.push_back(TriangleIndices(4, 9, 5));
 	faces.push_back(TriangleIndices(2, 4, 11));
@@ -1826,10 +1809,33 @@ void IcosphereMesh::_create_mesh_array(Array &p_arr) const {
 	faces.push_back(TriangleIndices(9, 8, 1));
 
 
-	for(int i = 0; i < subdivisions; i++)
-	{
+	for(int i = 0; i < 1; i++){
+
 		PoolVector<TriangleIndices> new_faces;
+
+		for(int j = 0; j < faces.size(); j++){
+			TriangleIndices tri = faces[i];
+			int a = get_middle_point(tri.v1, tri.v2);
+            int b = get_middle_point(tri.v2, tri.v3);
+            int c = get_middle_point(tri.v3, tri.v1);
+
+			new_faces.push_back(TriangleIndices(tri.v1, a, c));
+            new_faces.push_back(TriangleIndices(tri.v2, b, a));
+            new_faces.push_back(TriangleIndices(tri.v3, c, b));
+            new_faces.push_back(TriangleIndices(a, b, c));
+		}
+
+		faces = new_faces;
+
 	}
+
+	for(int i = 0; i < faces.size(); i++){
+		indices.push_back(faces[i].v1);
+		indices.push_back(faces[i].v2);
+		indices.push_back(faces[i].v3);
+	}
+
+
 
 
 	p_arr[VS::ARRAY_VERTEX] = points;
@@ -1837,6 +1843,12 @@ void IcosphereMesh::_create_mesh_array(Array &p_arr) const {
 	p_arr[VS::ARRAY_TANGENT] = tangents;
 	p_arr[VS::ARRAY_TEX_UV] = uvs;
 	p_arr[VS::ARRAY_INDEX] = indices;
+}
+
+void IcosphereMesh::_create_mesh_array(Array &p_arr) const {
+
+	const_cast<IcosphereMesh*>(this)->create_mesh_array(p_arr);
+
 }
 
 void IcosphereMesh::_bind_methods() {
@@ -1881,10 +1893,53 @@ int IcosphereMesh::get_subdivisions() const {
 	return subdivisions;
 }
 
-void IcosphereMesh::add_vertex(Vector3 vertex, PoolVector<Vector3>& points, int& index) const{
-	double length = sqrt(vertex.x * vertex.x + vertex.y * vertex.y + vertex.z * vertex.z);
-	points.push_back(Vector3(vertex.x / length, vertex.y / length, vertex.z / length));
-	index++;
+
+
+int IcosphereMesh::get_middle_point(int p1, int p2) {
+	long smaller_index = p1;
+	long greater_index = p2;
+	if(p2 < p1){
+		smaller_index = p2;
+		greater_index = p1;
+	}
+
+	long key = (smaller_index << 32) + greater_index;
+
+	/*
+	auto iterator = middle_point_index_cache.find(key);
+	if(iterator != middle_point_index_cache.end()){
+		return iterator->second;
+	}
+	*/
+
+	Vector3 vector1 = points[p1];
+	Vector3 vector2 = points[p2];
+	Vector3 middle = Vector3(
+		(vector1.x + vector2.x) / 2,
+		(vector1.y + vector2.y) / 2,
+		(vector1.z + vector2.z) / 2
+	);
+
+	int i = add_vertex(middle);
+
+	middle_point_index_cache[key] = i;
+	return i;
+
+
+}
+
+int IcosphereMesh::add_vertex(Vector3 vertex){
+	#define ADD_TANGENT(m_x, m_y, m_z, m_d) \
+		tangents.push_back(m_x);            \
+		tangents.push_back(m_y);            \
+		tangents.push_back(m_z);            \
+		tangents.push_back(m_d);
+
+	points.push_back(vertex.normalized());
+	normals.push_back(vertex.normalized());
+	ADD_TANGENT(1.0, 0.0, 0.0, 1.0)
+	uvs.push_back(Vector2(vertex.x, vertex.z));
+	return index++;
 }
 
 
@@ -1892,7 +1947,7 @@ IcosphereMesh::IcosphereMesh() {
 	// defaults
 	radius = 1.0;
 	height = 2.0;
-	subdivisions = 2;
+	subdivisions = 3;
 }
 
 
