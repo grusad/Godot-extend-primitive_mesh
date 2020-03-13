@@ -1929,7 +1929,12 @@ uint64_t IcosphereMesh::add_vertex(Vector3 vertex, PoolVector<Vector3> &points, 
 	points.push_back(vertex.normalized() * radius);
 	normals.push_back(vertex.normalized());
 	ADD_TANGENT(0, 0.0, -0, 0.0)
-	uvs.push_back(Vector2(0, 0));
+
+	float theta = (atan2(vertex.normalized().x, vertex.normalized().z) / Math_PI) / 2.0f + 0.5f;
+	float phi = (asin(-vertex.normalized().y) / (Math_PI / 2.0f)) / 2.0f + 0.5f;
+
+
+	uvs.push_back(Vector2(theta, phi));
 	return index++;
 }
 
