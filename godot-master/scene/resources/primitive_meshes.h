@@ -32,6 +32,7 @@
 #define PRIMITIVE_MESHES_H
 
 #include "scene/resources/mesh.h"
+#include "core/dictionary.h"
 
 ///@TODO probably should change a few integers to unsigned integers...
 
@@ -357,25 +358,25 @@ public:
 	ConeMesh();
 };
 
-#include <map>
+
 class IcosphereMesh : public PrimitiveMesh {
 	GDCLASS(IcosphereMesh, PrimitiveMesh);
 
 private:
 	float radius;
-	float height;
 	int subdivisions;
 	int index;
+
 
 
 	struct TriangleIndices
 	{
 	public:
-		int v1;
-		int v2;
-		int v3;
+		uint64_t v1;
+		uint64_t v2;
+		uint64_t v3;
 		TriangleIndices() {};
-		TriangleIndices(int v1, int v2, int v3)
+		TriangleIndices(uint64_t v1, uint64_t v2, uint64_t v3)
 		{
 			this->v1 = v1;
 			this->v2 = v2;
@@ -393,14 +394,11 @@ public:
 	void set_radius(const float p_radius);
 	float get_radius() const;
 
-	void set_height(const float p_height);
-	float get_height() const;
-
 	void set_subdivisions(const int p_subdivisions);
 	int get_subdivisions() const;
-	int add_vertex(Vector3 vertex, PoolVector<Vector3> &points, PoolVector<Vector3> &normals, PoolVector<Vector2> &uvs, PoolVector<float> &tangents);
+	uint64_t add_vertex(Vector3 vertex, PoolVector<Vector3> &points, PoolVector<Vector3> &normals, PoolVector<Vector2> &uvs, PoolVector<float> &tangents);
 
-	int get_middle_point(int p1, int p2, PoolVector<Vector3> &points, PoolVector<Vector3> &normals, PoolVector<Vector2> &uvs, PoolVector<float> &tangents, std::map<long, int> &middle_point_index_cache);
+	uint64_t get_middle_point(uint64_t p1, uint64_t p2, PoolVector<Vector3> &points, PoolVector<Vector3> &normals, PoolVector<Vector2> &uvs, PoolVector<float> &tangents, Dictionary &middle_point_index_cache);
 	void create_mesh_array(Array &p_arr);
 	IcosphereMesh();
 };
