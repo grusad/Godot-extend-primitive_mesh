@@ -1758,7 +1758,6 @@ ConeMesh::ConeMesh() {
   IcosphereMesh
 */
 
-#include "core/dictionary.h"
 
 void IcosphereMesh::create_mesh_array(Array &p_arr) {
 
