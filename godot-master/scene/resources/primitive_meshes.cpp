@@ -1582,111 +1582,113 @@ SphereMesh::SphereMesh() {
 */
 
 void ConeMesh::_create_mesh_array(Array &p_arr) const {
-	int i, j, prevrow, thisrow, point;
-	float x, y, z, u, v, radius;
+    int i, j, prevrow, thisrow, point;
+    float x, y, z, u, v, radius, side_angle;
 
-	PoolVector<Vector3> points;
-	PoolVector<Vector3> normals;
-	PoolVector<float> tangents;
-	PoolVector<Vector2> uvs;
-	PoolVector<int> indices;
-	point = 0;
+    PoolVector<Vector3> points;
+    PoolVector<Vector3> normals;
+    PoolVector<float> tangents;
+    PoolVector<Vector2> uvs;
+    PoolVector<int> indices;
+    point = 0;
 
 #define ADD_TANGENT(m_x, m_y, m_z, m_d) \
-	tangents.push_back(m_x);            \
-	tangents.push_back(m_y);            \
-	tangents.push_back(m_z);            \
-	tangents.push_back(m_d);
+    tangents.push_back(m_x);            \
+    tangents.push_back(m_y);            \
+    tangents.push_back(m_z);            \
+    tangents.push_back(m_d);
 
-	thisrow = 0;
-	prevrow = 0;
-	for (j = 0; j <= (rings + 1); j++) {
-		v = j;
-		v /= (rings + 1);
+  side_angle = tan(bottom_radius / height);
 
-		radius = ((bottom_radius) * v);
+    thisrow = 0;
+    prevrow = 0;
+    for (j = 0; j <= (rings + 1); j++) {
+        v = j;
+        v /= (rings + 1);
 
-		y = height * v;
-		y = (height * 0.5) - y;
+        radius = ((bottom_radius) * v);
 
-		for (i = 0; i <= radial_segments; i++) {
-			u = i;
-			u /= radial_segments;
+        y = height * v;
+        y = (height * 0.5) - y;
 
-			x = sin(u * (Math_PI * 2.0));
-			z = cos(u * (Math_PI * 2.0));
+        for (i = 0; i <= radial_segments; i++) {
+            u = i;
+            u /= radial_segments;
 
-			Vector3 p = Vector3(x * radius, y, z * radius);
-			points.push_back(p);
-			normals.push_back(Vector3(x, 0.0, z));
-			ADD_TANGENT(z, 0.0, -x, 1.0)
-			uvs.push_back(Vector2(u, v * 0.5));
-			point++;
+            x = sin(u * (Math_PI * 2.0));
+            z = cos(u * (Math_PI * 2.0));
 
-			if (i > 0 && j > 0) {
-				indices.push_back(prevrow + i - 1);
-				indices.push_back(prevrow + i);
-				indices.push_back(thisrow + i - 1);
+            Vector3 p = Vector3(x * radius, y, z * radius);
+            points.push_back(p);
+            normals.push_back((Vector3(x, 0.0, z) * cos(side_angle) + Vector3(0.0, 1.0, 0.0) * sin(side_angle)));
+            ADD_TANGENT(z, 0.0, -x, 1.0)
+            uvs.push_back(Vector2(u, v * 0.5));
+            point++;
 
-				indices.push_back(prevrow + i);
-				indices.push_back(thisrow + i);
-				indices.push_back(thisrow + i - 1);
-			};
-		};
+            if (i > 0 && j > 0) {
+                indices.push_back(prevrow + i - 1);
+                indices.push_back(prevrow + i);
+                indices.push_back(thisrow + i - 1);
 
-		prevrow = thisrow;
-		thisrow = point;
-	};
+                indices.push_back(prevrow + i);
+                indices.push_back(thisrow + i);
+                indices.push_back(thisrow + i - 1);
+            };
+        };
 
-	// add top vertex
-	thisrow = point;
-	points.push_back(Vector3(0.0, height * 0.5, 0.0));
-	normals.push_back(Vector3(0.0, 1.0, 0.0));
-	ADD_TANGENT(1.0, 0.0, 0.0, 1.0)
-	uvs.push_back(Vector2(0.25, 0.75));
-	point++;
+        prevrow = thisrow;
+        thisrow = point;
+    };
 
-	// add bottom
-	if (bottom_radius > 0.0) {
-		y = height * -0.5;
+    // add top vertex
+    thisrow = point;
+    points.push_back(Vector3(0.0, height * 0.5, 0.0));
+    normals.push_back(Vector3(0.0, 1.0, 0.0));
+    ADD_TANGENT(1.0, 0.0, 0.0, 1.0)
+    uvs.push_back(Vector2(0.25, 0.75));
+    point++;
 
-		thisrow = point;
-		points.push_back(Vector3(0.0, y, 0.0));
-		normals.push_back(Vector3(0.0, -1.0, 0.0));
-		ADD_TANGENT(1.0, 0.0, 0.0, 1.0)
-		uvs.push_back(Vector2(0.75, 0.75));
-		point++;
+    // add bottom
+    if (bottom_radius > 0.0) {
+        y = height * -0.5;
 
-		for (i = 0; i <= radial_segments; i++) {
-			float r = i;
-			r /= radial_segments;
+        thisrow = point;
+        points.push_back(Vector3(0.0, y, 0.0));
+        normals.push_back(Vector3(0.0, -1.0, 0.0));
+        ADD_TANGENT(1.0, 0.0, 0.0, 1.0)
+        uvs.push_back(Vector2(0.75, 0.75));
+        point++;
 
-			x = sin(r * (Math_PI * 2.0));
-			z = cos(r * (Math_PI * 2.0));
+        for (i = 0; i <= radial_segments; i++) {
+            float r = i;
+            r /= radial_segments;
 
-			u = 0.5 + ((x + 1.0) * 0.25);
-			v = 1.0 - ((z + 1.0) * 0.25);
+            x = sin(r * (Math_PI * 2.0));
+            z = cos(r * (Math_PI * 2.0));
 
-			Vector3 p = Vector3(x * bottom_radius, y, z * bottom_radius);
-			points.push_back(p);
-			normals.push_back(Vector3(0.0, -1.0, 0.0));
-			ADD_TANGENT(1.0, 0.0, 0.0, 1.0)
-			uvs.push_back(Vector2(u, v));
-			point++;
+            u = 0.5 + ((x + 1.0) * 0.25);
+            v = 1.0 - ((z + 1.0) * 0.25);
 
-			if (i > 0) {
-				indices.push_back(thisrow);
-				indices.push_back(point - 2);
-				indices.push_back(point - 1);
-			};
-		};
-	};
+            Vector3 p = Vector3(x * bottom_radius, y, z * bottom_radius);
+            points.push_back(p);
+            normals.push_back(Vector3(0.0, -1.0, 0.0));
+            ADD_TANGENT(1.0, 0.0, 0.0, 1.0)
+            uvs.push_back(Vector2(u, v));
+            point++;
 
-	p_arr[VS::ARRAY_VERTEX] = points;
-	p_arr[VS::ARRAY_NORMAL] = normals;
-	p_arr[VS::ARRAY_TANGENT] = tangents;
-	p_arr[VS::ARRAY_TEX_UV] = uvs;
-	p_arr[VS::ARRAY_INDEX] = indices;
+            if (i > 0) {
+                indices.push_back(thisrow);
+                indices.push_back(point - 2);
+                indices.push_back(point - 1);
+            };
+        };
+    };
+
+    p_arr[VS::ARRAY_VERTEX] = points;
+    p_arr[VS::ARRAY_NORMAL] = normals;
+    p_arr[VS::ARRAY_TANGENT] = tangents;
+    p_arr[VS::ARRAY_TEX_UV] = uvs;
+    p_arr[VS::ARRAY_INDEX] = indices;
 }
 
 void ConeMesh::_bind_methods() {
@@ -1967,7 +1969,7 @@ void TorusMesh::_create_mesh_array(Array &p_arr) const {
 	tangents.push_back(m_z);            \
 	tangents.push_back(m_d);
 
-  
+
 
 	thisrow = 0;
 	prevrow = 0;
@@ -1975,7 +1977,7 @@ void TorusMesh::_create_mesh_array(Array &p_arr) const {
     v = j;
     v /= radial_segments;
     v_angle = v * Math_PI * 2.0f;
-		
+
 		for (i = 0; i <= rings; i++) {
       u = i;
       u /= rings;
@@ -1992,7 +1994,7 @@ void TorusMesh::_create_mesh_array(Array &p_arr) const {
       uvs.push_back(Vector2(u,v * -1));
 			point++;
 
-			if (i > 0 && j > 0) { 
+			if (i > 0 && j > 0) {
 				indices.push_back(prevrow + i - 1);
 				indices.push_back(thisrow + i - 1);
 				indices.push_back(prevrow + i);
