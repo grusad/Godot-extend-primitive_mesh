@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="TorusMesh" inherits="PrimitiveMesh" version="4.0">
+	<brief_description>
+		Class representing a toroid [PrimitiveMesh].
+	</brief_description>
+	<description>
+		Class representing a toroid [PrimitiveMesh].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+	</methods>
+	<members>
+		<member name="radius" type="float" setter="set_radius" getter="get_radius" default="1.0">
+			Radius of torus.
+		</member>
+		<member name="tube_radius" type="float" setter="set_tube_radius" getter="get_tube_radius" default="0.2">
+			Radius of tube.
+		</member>
+		<member name="rings" type="int" setter="set_rings" getter="get_rings" default="15">
+			Number of segments along the tube.
+		</member>
+		<member name="radial_segments" type="int" setter="set_radial_segments" getter="get_radial_segments" default="25">
+			Number of radial segments on the tube.
+		</member>
+		<member name="arc" type="int" setter="set_arc" getter="get_arc" default="360">
+			Arc of the tube
+		</member>
+	</members>
+	<constants>
+	</constants>
+</class>

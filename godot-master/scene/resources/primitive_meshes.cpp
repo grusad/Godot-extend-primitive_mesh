@@ -1778,14 +1778,14 @@ void TorusMesh::_create_mesh_array(Array &p_arr) const {
 
 	thisrow = 0;
 	prevrow = 0;
-	for (j = 0; j <= rings; j++) {
+	for (j = 0; j <= radial_segments; j++) {
     v = j;
-    v /= rings;
+    v /= radial_segments;
     v_angle = v * Math_PI * 2.0f;
 		
-		for (i = 0; i <= radial_segments; i++) {
+		for (i = 0; i <= rings; i++) {
       u = i;
-      u /= radial_segments;
+      u /= rings;
       u_angle = u * Math::deg2rad((float)arc);
 
 			x = ( radius + tube_radius * cos(v_angle)) * cos(u_angle);
@@ -1892,8 +1892,8 @@ TorusMesh::TorusMesh() {
 	// defaults
 	radius = 1.0;
 	tube_radius = 0.2;
-	radial_segments = 25;
-	rings = 15;
+	radial_segments = 16;
+	rings = 32;
   arc = 360;
 }
 
