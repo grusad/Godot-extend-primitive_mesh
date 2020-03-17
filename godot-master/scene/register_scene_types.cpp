@@ -620,7 +620,11 @@ void register_scene_types() {
 	ClassDB::register_class<QuadMesh>();
 	ClassDB::register_class<SphereMesh>();
 	ClassDB::register_class<ConeMesh>();
+<<<<<<< HEAD
+  ClassDB::register_class<TorusMesh>();
+=======
 	ClassDB::register_class<IcosphereMesh>();
+>>>>>>> 5b770f288575990f3acafcc90049fbab29aaa9e7
 	ClassDB::register_class<PointMesh>();
 	ClassDB::register_virtual_class<Material>();
 	ClassDB::register_virtual_class<BaseMaterial3D>();
