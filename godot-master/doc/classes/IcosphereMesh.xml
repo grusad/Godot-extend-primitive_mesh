@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="IcosphereMesh" inherits="PrimitiveMesh" version="4.0">
+	<brief_description>
+		Class representing an icosphere [PrimitiveMesh].
+	</brief_description>
+	<description>
+		Class representing an icosphere [PrimitiveMesh].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+	</methods>
+	<members>
+		<member name="subdivisions" type="int" setter="set_subdivisions" getter="get_subdivisions" default="2.0">
+			The amount of subdivisions on the icosphere. The more subdivisions, the more polygons.
+		</member>
+		<member name="radius" type="float" setter="set_radius" getter="get_radius" default="1.0">
+			Radius of icosphere.
+		</member>
+	</members>
+	<constants>
+	</constants>
+</class>
