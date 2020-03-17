@@ -32,6 +32,7 @@
 #define PRIMITIVE_MESHES_H
 
 #include "scene/resources/mesh.h"
+#include "core/dictionary.h"
 
 ///@TODO probably should change a few integers to unsigned integers...
 
@@ -318,6 +319,7 @@ public:
 	int get_radial_segments() const;
 
 	void set_rings(const int p_rings);
+
 	int get_rings() const;
 
 	void set_is_hemisphere(const bool p_is_hemisphere);
@@ -357,6 +359,49 @@ public:
 };
 
 
+class IcosphereMesh : public PrimitiveMesh {
+	GDCLASS(IcosphereMesh, PrimitiveMesh);
+
+private:
+	float radius;
+	int subdivisions;
+	int index;
+
+
+
+	struct TriangleIndices
+	{
+	public:
+		uint64_t v1;
+		uint64_t v2;
+		uint64_t v3;
+		TriangleIndices() {};
+		TriangleIndices(uint64_t v1, uint64_t v2, uint64_t v3)
+		{
+			this->v1 = v1;
+			this->v2 = v2;
+			this->v3 = v3;
+		}
+	};
+
+protected:
+	static void _bind_methods();
+	virtual void _create_mesh_array(Array &p_arr) const;
+
+public:
+
+	void set_radius(const float p_radius);
+	float get_radius() const;
+
+	void set_subdivisions(const int p_subdivisions);
+	int get_subdivisions() const;
+	uint64_t add_vertex(Vector3 vertex, PoolVector<Vector3> &points, PoolVector<Vector3> &normals, PoolVector<Vector2> &uvs, PoolVector<float> &tangents);
+
+	uint64_t get_middle_point(uint64_t p1, uint64_t p2, PoolVector<Vector3> &points, PoolVector<Vector3> &normals, PoolVector<Vector2> &uvs, PoolVector<float> &tangents, Dictionary &middle_point_index_cache);
+	void create_mesh_array(Array &p_arr);
+	IcosphereMesh();
+};
+
 class TorusMesh : public PrimitiveMesh {
 	GDCLASS(TorusMesh, PrimitiveMesh);
 
@@ -368,28 +413,35 @@ private:
   int arc;
 
 protected:
-	static void _bind_methods();
-	virtual void _create_mesh_array(Array &p_arr) const;
+  static void _bind_methods();
+  virtual void _create_mesh_array(Array &p_arr) const;
 
 public:
 
 	void set_radius(const float p_radius);
 	float get_radius() const;
-
 	void set_tube_radius(const float p_tube_radius);
 	float get_tube_radius() const;
 
-	void set_radial_segments(const int p_segments);
+ void set_radial_segments(const int p_segments);
 	int get_radial_segments() const;
 
 	void set_rings(const int p_rings);
 	int get_rings() const;
 
-  void set_arc(const int p_arc);
-  int get_arc() const;
+	void set_arc(const int p_arc);
+	int get_arc() const;
 
-	TorusMesh();
+  TorusMesh();
 };
+
+
+
+
+
+
+
+
 
 /**
 	A single point for use in particle systems
